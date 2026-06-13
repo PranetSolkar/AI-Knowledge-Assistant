@@ -1,0 +1,673 @@
+{
+  "name": "AI Knowledge Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "ai-knowledge-assistant",
+          "mode": "list",
+          "cachedResultName": "ai-knowledge-assistant"
+        },
+        "options": {
+          "pineconeNamespace": "={{ $json.namespace }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        -272,
+        -16
+      ],
+      "id": "58a9e22c-3340-4507-a47a-0ff7b0e398a2",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "NBOmd9Y0rLeSr87L",
+          "name": "Pinecone account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "embed-english-v3.0"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsCohere",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        208
+      ],
+      "id": "0f14f4fc-534b-4004-9c00-cafda67986f2",
+      "name": "Embeddings Cohere",
+      "credentials": {
+        "cohereApi": {
+          "id": "n8vg0DaCBIyVTz1K",
+          "name": "Cohere account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -128,
+        192
+      ],
+      "id": "5d8b8ad5-91c6-45d5-86cc-1be3e688d724",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "jsCode": "items[0].json.namespace =\nObject.values($binary)[0].fileName;\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -704,
+        -16
+      ],
+      "id": "2b8ea074-0a56-4c03-b566-c7cee1b31bb8",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "You are an AI assistant that can use both:\n1. Retrieved document context (from Pinecone vector database)\n2. Chat memory (previous conversation in this session)\n3. Your general knowledge (only as a last resort)\n\nSTRICT PRIORITY ORDER:\n1. ALWAYS use the provided document context first.\n2. If the answer is not in the context, then check chat memory.\n3. If still not found, use general knowledge.\n\nRULES:\n- If document context is provided, prioritize it above everything else.\n- Do NOT mix document facts with general knowledge unless necessary.\n- If the answer is not found in the document context, just type:\n  \"I guess i have to use my brain for this!\" and give answer using your general knowledge\n- Do not hallucinate or assume missing information.\n- Do not mention internal tools (Pinecone, memory, embeddings).\n- Keep answers clear, structured, and helpful.\n- If multiple sources conflict, prefer document context.\n\n\nOUTPUT STYLE:\n- Use headings and bullet points when helpful.\n- Be concise but complete."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1840,
+        -32
+      ],
+      "id": "7dea867f-b75d-4d13-be47-f684e6573747",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1088,
+        336
+      ],
+      "id": "ac150c29-172e-4e7f-96c6-9c9ee9f5fb97",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "X0I60MzurGX2cH3u",
+          "name": "Groq account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        1872,
+        224
+      ],
+      "id": "aadc9a43-5231-451c-b6de-cf9d79f2f12c",
+      "name": "Simple Memory",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "modelName": "embed-english-v3.0"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsCohere",
+      "typeVersion": 1,
+      "position": [
+        1968,
+        384
+      ],
+      "id": "6a62a9da-c9f0-474d-a792-dbd7206f5736",
+      "name": "Embeddings Cohere1",
+      "credentials": {
+        "cohereApi": {
+          "id": "n8vg0DaCBIyVTz1K",
+          "name": "Cohere account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nreturn [\n  {\n    json: {\n      chatInput: data.body.question,\n      sessionId: data.body.sessionId,\n      namespace: data.namespace\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        -32
+      ],
+      "id": "d7e3963b-ada3-499d-8d9d-aa932cc3b20e",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search the uploaded PDF knowledge base and retrieve relevant information related to the user's question. Use this tool whenever the answer may be present in the document. Prioritize document information over general knowledge. Include source information when available. If no relevant information is found, answer using your own knowledge.",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "ai-knowledge-assistant",
+          "mode": "list",
+          "cachedResultName": "ai-knowledge-assistant"
+        },
+        "options": {
+          "pineconeNamespace": "={{ $('Code in JavaScript1').item.json.namespace }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1984,
+        192
+      ],
+      "id": "3212f03e-1397-40d5-81a8-49b21f270d30",
+      "name": "Pinecone Vector Store1",
+      "credentials": {
+        "pineconeApi": {
+          "id": "NBOmd9Y0rLeSr87L",
+          "name": "Pinecone account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "3oyc4SGwqorBpVbJ",
+          "mode": "list",
+          "cachedResultName": "CurrentPDF1",
+          "cachedResultUrl": "/projects/p1rgz7I9VxS8vzjq/datatables/3oyc4SGwqorBpVbJ"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id1",
+              "keyValue": "currentNamespace"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        -16
+      ],
+      "id": "e3e18607-1063-42e5-bf7e-ad07b993d9d3",
+      "name": "Get row(s)"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "3oyc4SGwqorBpVbJ",
+          "mode": "list",
+          "cachedResultName": "CurrentPDF1",
+          "cachedResultUrl": "/projects/p1rgz7I9VxS8vzjq/datatables/3oyc4SGwqorBpVbJ"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id1",
+              "keyValue": "currentNamespace"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "namespace": "={{$json.namespace}}",
+            "id1": "currentNamespace"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "id1",
+              "displayName": "id1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "namespace",
+              "displayName": "namespace",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -496,
+        -144
+      ],
+      "id": "16788728-2612-42f5-b14b-a0ff4d7c9951",
+      "name": "Upsert row(s)"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1008,
+        160
+      ],
+      "id": "47d86fdf-ec09-4055-b0b4-c20b774d9ef4",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        704,
+        176
+      ],
+      "id": "c49df065-6b60-4db0-b2d0-db96805b8a1f",
+      "name": "Webhook",
+      "webhookId": "ab5e7d77-73e8-4eef-baf7-398b46e3260c"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { response: $json.output } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2160,
+        -16
+      ],
+      "id": "d27d9df4-0952-49f0-9954-1928e715c59e",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "upload",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*",
+          "binaryPropertyName": "document"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -928,
+        144
+      ],
+      "id": "62e0e97f-d907-4168-8d23-c94815db5456",
+      "name": "Webhook1",
+      "webhookId": "de43b4f9-f794-4555-993b-f24dfe6b177d"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"message\": \"File received successfully\",\n  \"fileName\": \"={{$binary.document.fileName}}\",\n  \"mimeType\": \"={{$binary.document.mimeType}}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        80,
+        -16
+      ],
+      "id": "fdbfcaac-6192-4635-bfe1-30b4960d2996",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1744,
+        336
+      ],
+      "id": "85884a3f-e44b-4963-83ae-4b491e1de3e0",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "vgXx1i1evQRL8y7y",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "ai-knowledge-assistant",
+          "mode": "list",
+          "cachedResultName": "ai-knowledge-assistant"
+        },
+        "prompt": "={{$json.chatInput}}",
+        "options": {
+          "pineconeNamespace": "={{$json.namespace}}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1264,
+        128
+      ],
+      "id": "3de5c0bf-4a50-44da-8707-8faf1ddc3c48",
+      "name": "Pinecone Vector Store2",
+      "credentials": {
+        "pineconeApi": {
+          "id": "NBOmd9Y0rLeSr87L",
+          "name": "Pinecone account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const docs = $input.all();\n\nconst context = docs\n  .map(item => item.json.document.pageContent)\n  .join(\"\\n\\n\")\n  .replace(/\\n{3,}/g, \"\\n\\n\"); // remove excessive blank lines\n\nconst hasContext = context.length > 50; // adjust threshold\n\nreturn [{\n  json: {\n    chatInput: $('Code in JavaScript1').first().json.chatInput,\n    context,\n    hasContext,\n    sessionId: $('Code in JavaScript1').first().json.sessionId\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1616,
+        112
+      ],
+      "id": "c179b0ab-5074-4e07-b3a6-e44a3a49a942",
+      "name": "Code in JavaScript2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "modelName": "embed-english-v3.0"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsCohere",
+      "typeVersion": 1,
+      "position": [
+        1264,
+        336
+      ],
+      "id": "207d4778-6b9f-474c-bf6b-b862e5792794",
+      "name": "Embeddings Cohere2",
+      "credentials": {
+        "cohereApi": {
+          "id": "n8vg0DaCBIyVTz1K",
+          "name": "Cohere account 3"
+        }
+      },
+      "disabled": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Embeddings Cohere": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Upsert row(s)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Cohere1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert row(s)": {
+      "main": [
+        []
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook1": {
+      "main": [
+        []
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Cohere2": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store2",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ccf5a6b0-578b-4eee-90a8-3de1381c31ed",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fa4ef8938aa5aa6f16d184bd48fc08931ae88b8f8cb3720144522f5143aeae58"
+  },
+  "nodeGroups": [],
+  "id": "3O6R0nvI2b7RkRYt",
+  "tags": []
+}
