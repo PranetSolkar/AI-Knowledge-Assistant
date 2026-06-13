@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Lumina AI Knowledge Assistant</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css">
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com">
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+</head>
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <!-- Logo -->
+        <div class="logo-section">
+
+            <div class="logo-icon">
+                ◈
+            </div>
+
+            <div class="logo-text">
+
+                <h2> Lumina </h2>
+
+            </div>
+
+        </div>
+
+
+        <!-- New Chat -->
+        <button class="new-chat-btn">
+
+            ＋ New Chat
+
+        </button>
+
+
+        <!-- Quick Actions -->
+        <div class="sidebar-section">
+
+            <h4>QUICK ACTIONS</h4>
+
+            <div class="quick-action">
+
+                📄 Summarize Document
+
+            </div>
+
+            <div class="quick-action">
+
+                📊 Extract Tables
+
+            </div>
+
+            <div class="quick-action">
+
+                📝 Generate Notes
+
+            </div>
+
+            <div class="quick-action">
+
+                🎯 Key Insights
+
+            </div>
+
+            <div class="quick-action">
+
+                🔍 Search PDF
+
+            </div>
+
+            <div class="quick-action">
+
+                📚 Explain Concepts
+
+            </div>
+
+        </div>
+
+
+        <!-- Suggested Prompts -->
+        <div class="sidebar-section">
+
+            <h4>SUGGESTED PROMPTS</h4>
+
+            <div class="prompt-item">
+
+                What is this document about?
+
+            </div>
+
+            <div class="prompt-item">
+
+                Summarize key findings
+
+            </div>
+
+            <div class="prompt-item">
+
+                Explain in simple language
+
+            </div>
+
+            <div class="prompt-item">
+
+                Generate interview questions
+
+            </div>
+
+        </div>
+
+
+        <!-- Bottom User -->
+        <div class="guest-card">
+
+            <div class="guest-avatar">
+
+                👤
+
+            </div>
+
+            <div>
+
+                <h4>Guest</h4>
+
+                <span>
+
+                    Free Plan
+
+                </span>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- MAIN AREA -->
+    <main class="main-content">
+
+        <!-- HEADER -->
+        <header>
+
+            <div class="header-left">
+
+                <button
+                    class="menu-btn">
+
+                    ☰
+
+                </button>
+
+                <div>
+
+                    <h2>
+
+                        AI Knowledge Assistant
+
+                    </h2>
+
+                    <span>
+
+                        Your Personal PDF Assistant
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="header-right">
+
+                <button class="model-btn">
+
+                    GPT-4o
+
+                </button>
+
+                <button
+                    id="theme-btn">
+
+                    🌙
+
+                </button>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- CHAT AREA -->
+        <section
+            id="chat-box">
+
+
+            <!-- Hero -->
+            <div
+                class="hero">
+
+                <div class="hero-icon">
+
+                    ◈
+
+                </div>
+
+                <h1>
+
+                    Hello! I'm Lumina
+
+                </h1>
+
+                <p>
+
+                    Upload a PDF and ask me anything about it.
+                    I'll read it so you don't have to.
+
+                </p>
+
+
+
+                <div class="suggestions">
+
+                    <button>
+
+                        📄 What's this document about?
+
+                    </button>
+
+                    <button>
+
+                        🔍 Summarise key findings
+
+                    </button>
+
+                    <button>
+
+                        📊 Extract data tables
+
+                    </button>
+
+                    <button>
+
+                        ✍ Rewrite in plain English
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- INPUT -->
+        <div class="input-wrapper">
+
+            <div class="chat-input-container">
+
+                <button
+                    id="upload-btn">
+
+                    ＋
+
+                </button>
+
+
+                <!-- Hidden File Input -->
+                <input
+                    type="file"
+                    hidden
+                    id="pdf-file"
+                    accept=".pdf">
+
+
+                <textarea
+
+                    id="question-input"
+
+                    rows="1"
+
+                    placeholder="Ask anything about your document..."
+
+                ></textarea>
+
+
+
+                <button
+                    id="send-btn">
+
+                    ➜
+
+                </button>
+
+            </div>
+
+            <p style="margin-left: 350px; font-size: 13px; margin-top: 8px; font-weight: lighter; color: grey;">
+
+                Lumina can make mistakes.
+                Check important information.
+
+            </p>
+
+        </div>
+
+
+    </main>
+
+</div>
+
+
+<!-- Toast -->
+<div id="toast" class="toast">
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
