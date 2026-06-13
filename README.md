@@ -111,12 +111,6 @@ Response
 
 ---
 
-## 📸 Screenshot
-
-### Home Page
-
-![Home Page](screenshots/Interface.png)
-
 
 ## 🔐 Security
 
